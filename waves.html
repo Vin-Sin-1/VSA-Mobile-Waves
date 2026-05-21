@@ -206,6 +206,7 @@ select:focus { outline:none; border-color:var(--accent); }
 </script>
 <script>
 'use strict';
+function toTs(s){return Math.floor(new Date(s).getTime()/1000);}
 var SB_URL='https://nyykpszexlxtapbnkxpw.supabase.co', SB_KEY='sb_publishable_1Qv50ww1Krv0_8-Tgtdn-g_ahEOIOoP';
 var HDR={'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY};
 var SMA_P=26,BB_P=20,BB_M=2,VOL_MA_P=20;
@@ -272,14 +273,14 @@ function buildCharts(){
   });
 
   cs=pChart.addCandlestickSeries({upColor:UP,downColor:DN,borderUpColor:UP,borderDownColor:DN,wickUpColor:UP,wickDownColor:DN});
-  cs.setData(rows.map(function(r,i){
+  cs.setData(rows.map(function(r){
     var c=VSA[r.vsa_color]||VSA.Cyan;
-    return{time:i,open:+r.open,high:+r.high,low:+r.low,close:+r.close,color:c,borderColor:c,wickColor:c};
+    return{time:toTs(r.bar_start_time),open:+r.open,high:+r.high,low:+r.low,close:+r.close,color:c,borderColor:c,wickColor:c};
   }));
 
   smaSeries=pChart.addLineSeries({color:'#f09a3d',lineWidth:1,priceLineVisible:false,lastValueVisible:false,crosshairMarkerVisible:false,visible:showSMA});
   var sd=[];
-  for(var i=SMA_P-1;i<n;i++){var s=0;for(var j=i-SMA_P+1;j<=i;j++)s+=+rows[j].close;sd.push({time:i,value:s/SMA_P});}
+  for(var i=SMA_P-1;i<n;i++){var s=0;for(var j=i-SMA_P+1;j<=i;j++)s+=+rows[j].close;sd.push({time:toTs(rows[i].bar_start_time),value:s/SMA_P});}
   smaSeries.setData(sd);
 
   bbUp=pChart.addLineSeries({color:'#5a6a8a',lineWidth:1,lineStyle:1,priceLineVisible:false,lastValueVisible:false,crosshairMarkerVisible:false,visible:showBB});
@@ -289,15 +290,15 @@ function buildCharts(){
     var s=0;for(var j=i-BB_P+1;j<=i;j++)s+=+rows[j].close;
     var m=s/BB_P,v=0;for(var j=i-BB_P+1;j<=i;j++){var d=+rows[j].close-m;v+=d*d;}
     var sd2=Math.sqrt(v/BB_P);
-    bu.push({time:i,value:m+BB_M*sd2});bl.push({time:i,value:m-BB_M*sd2});
+    bu.push({time:toTs(rows[i].bar_start_time),value:m+BB_M*sd2});bl.push({time:toTs(rows[i].bar_start_time),value:m-BB_M*sd2});
   }
   bbUp.setData(bu);bbLo.setData(bl);
 
   zzSeries=pChart.addLineSeries({color:GOLD,lineWidth:2,priceLineVisible:false,lastValueVisible:false,crosshairMarkerVisible:false});
-  zzSeries.setData(tps.map(function(tp){return{time:tp.idx,value:tp.price};}));
+  zzSeries.setData(tps.map(function(tp){return{time:toTs(rows[tp.idx].bar_start_time),value:tp.price};}));
 
   cs.setMarkers(tps.map(function(tp){
-    return{time:tp.idx,position:tp.type==='low'?'belowBar':'aboveBar',
+    return{time:toTs(rows[tp.idx].bar_start_time),position:tp.type==='low'?'belowBar':'aboveBar',
            color:tp.type==='low'?'#58a6ff':DN,shape:tp.type==='low'?'arrowUp':'arrowDown',
            text:(tp.type==='low'?'L ':'H ')+tp.price.toFixed(1),size:1};
   }));
@@ -318,14 +319,14 @@ function buildCharts(){
   });
 
   vs=vChart.addHistogramSeries({priceScaleId:'right',priceLineVisible:false,lastValueVisible:true});
-  vs.setData(rows.map(function(r,i){
-    return{time:i,value:+r.volume,color:VSA[r.vsa_color]||VSA.Cyan};
+  vs.setData(rows.map(function(r){
+    return{time:toTs(r.bar_start_time),value:+r.volume,color:VSA[r.vsa_color]||VSA.Cyan};
   }));
 
   vma=vChart.addLineSeries({color:'#f09a3d',lineWidth:1,priceScaleId:'right',
                             priceLineVisible:false,lastValueVisible:false});
   var vmd=[];
-  for(var i=VOL_MA_P-1;i<n;i++){var s=0;for(var j=i-VOL_MA_P+1;j<=i;j++)s+=+rows[j].volume;vmd.push({time:i,value:s/VOL_MA_P});}
+  for(var i=VOL_MA_P-1;i<n;i++){var s=0;for(var j=i-VOL_MA_P+1;j<=i;j++)s+=+rows[j].volume;vmd.push({time:toTs(rows[i].bar_start_time),value:s/VOL_MA_P});}
   vma.setData(vmd);
 
   // ── Sync time scales ──────────────────────────────────────────────────────
@@ -480,9 +481,9 @@ function appendNewBricks(newRows){
   newRows.forEach(function(r,offset){
     var i=n-newRows.length+offset;
     var col=VSA[r.vsa_color]||VSA.Cyan;
-    cs.update({time:i,open:+r.open,high:+r.high,low:+r.low,close:+r.close,
+    cs.update({time:toTs(r.bar_start_time),open:+r.open,high:+r.high,low:+r.low,close:+r.close,
                 color:col,borderColor:col,wickColor:col});
-    vs.update({time:i,value:+r.volume,color:col});
+    vs.update({time:toTs(r.bar_start_time),value:+r.volume,color:col});
   });
 
   // Recalculate waves and zigzag on full dataset
@@ -490,11 +491,11 @@ function appendNewBricks(newRows){
   var waves=buildWaves(rows,tps);
 
   // Update zigzag line
-  zzSeries.setData(tps.map(function(tp){return{time:tp.idx,value:tp.price};}));
+  zzSeries.setData(tps.map(function(tp){return{time:toTs(rows[tp.idx].bar_start_time),value:tp.price};}));
 
   // Update markers
   cs.setMarkers(tps.map(function(tp){
-    return{time:tp.idx,position:tp.type==='low'?'belowBar':'aboveBar',
+    return{time:toTs(rows[tp.idx].bar_start_time),position:tp.type==='low'?'belowBar':'aboveBar',
            color:tp.type==='low'?'#58a6ff':DN,
            shape:tp.type==='low'?'arrowUp':'arrowDown',
            text:(tp.type==='low'?'L ':'H ')+tp.price.toFixed(1),size:1};
@@ -502,7 +503,7 @@ function appendNewBricks(newRows){
 
   // Update SMA
   var smaData=[];
-  for(var i=SMA_P-1;i<n;i++){var s=0;for(var j=i-SMA_P+1;j<=i;j++)s+=+rows[j].close;smaData.push({time:i,value:s/SMA_P});}
+  for(var i=SMA_P-1;i<n;i++){var s=0;for(var j=i-SMA_P+1;j<=i;j++)s+=+rows[j].close;smaData.push({time:toTs(rows[i].bar_start_time),value:s/SMA_P});}
   smaSeries.setData(smaData);
 
   // Update chips + stats
