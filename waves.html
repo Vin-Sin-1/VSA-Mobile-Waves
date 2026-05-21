@@ -163,8 +163,6 @@ select:focus { outline:none; border-color:var(--accent); }
     <button class="thr-btn" id="thr-up">+</button>
     <div class="sep"></div>
     <button class="tab on"  id="btn-load">&#x21ba; Load</button>
-    <button class="tab on"  id="btn-sma">SMA</button>
-    <button class="tab"     id="btn-bb">BB</button>
     <button class="tab on"  id="btn-vol">Vol</button>
   </div>
 
@@ -217,7 +215,7 @@ var VSA={Cyan:'#3dd4f0',Magenta:'#e040fb',Red:'#f03d3d',White:'#e8edf5',Lime:'#3
 
 var rows=[],pChart=null,vChart=null,cs=null,vs=null,vma=null;
 var smaSeries=null,bbUp=null,bbLo=null,zzSeries=null;
-var showSMA=true,showBB=false,showVol=true;
+var showSMA=true,showBB=true,showVol=true;
 var waveThresh=3.0,lastBarIndex=-1,pollTimer=null,syncing=false;
 
 function sbGet(p){ return fetch(SB_URL+p,{headers:HDR}).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}); }
@@ -549,14 +547,6 @@ document.getElementById('thr-dn').addEventListener('click',function(){
 });
 document.getElementById('thr-up').addEventListener('click',function(){
   if(waveThresh<15){waveThresh=Math.round((waveThresh+0.5)*10)/10;document.getElementById('tv').textContent='$'+waveThresh.toFixed(2);}
-});
-document.getElementById('btn-sma').addEventListener('click',function(){
-  showSMA=!showSMA;this.classList.toggle('on',showSMA);
-  if(smaSeries)smaSeries.applyOptions({visible:showSMA});
-});
-document.getElementById('btn-bb').addEventListener('click',function(){
-  showBB=!showBB;this.classList.toggle('on',showBB);
-  if(bbUp)bbUp.applyOptions({visible:showBB});if(bbLo)bbLo.applyOptions({visible:showBB});
 });
 document.getElementById('btn-vol').addEventListener('click',function(){
   showVol=!showVol;this.classList.toggle('on',showVol);
