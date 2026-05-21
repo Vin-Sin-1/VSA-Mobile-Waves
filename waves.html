@@ -206,9 +206,6 @@ select:focus { outline:none; border-color:var(--accent); }
 </script>
 <script>
 'use strict';
-var LOCAL_OFFSET_SECONDS=-new Date().getTimezoneOffset()*60;
-function toTs(s){var t=s.trim().replace(/^(\d{4}-\d{2}-\d{2}) /,'$1T').replace(/(T[\d:.]+) ([+-])/,'$1$2').replace(/([+-]\d{2})(\d{2})$/,'$1:$2').replace(/([+-]\d{2})$/,'$1:00');return Math.floor(new Date(t).getTime()/1000)+LOCAL_OFFSET_SECONDS;}
-function rowTime(r){return toTs(r.fixed_time||r.bar_start_time);}
 var SB_URL='https://nyykpszexlxtapbnkxpw.supabase.co', SB_KEY='sb_publishable_1Qv50ww1Krv0_8-Tgtdn-g_ahEOIOoP';
 var HDR={'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY};
 var SMA_P=26,BB_P=20,BB_M=2,VOL_MA_P=20;
@@ -236,7 +233,7 @@ function loadData(){
   stopPoll(); showOverlay('LOADING...');
   var r=getRange(document.getElementById('sel').value);
   var q='instrument=eq.GC%20JUN26&brick_size=eq.4&order=bar_index.asc&limit='+r.lim
-      +'&select=bar_index,bar_start_time,fixed_time,open,high,low,close,volume,is_bull,delta,vsa_color'
+      +'&select=bar_index,bar_start_time,open,high,low,close,volume,is_bull,delta,vsa_color'
       +'&bar_start_time=gte.'+encodeURIComponent(r.gte);
   if(r.lte) q+='&bar_start_time=lte.'+encodeURIComponent(r.lte);
   sbGet('/rest/v1/renko_bricks?'+q)
@@ -264,6 +261,7 @@ function buildCharts(){
              horzLine:{color:'#3d8ef055',labelBackgroundColor:'#1a2540'}};
   var TS_OPT={borderColor:'#161a23',timeVisible:false,
               tickMarkFormatter:function(i){return labels[i]||'';}};
+  var LOC={timeFormatter:function(i){return labels[i]||'';}};
 
   // ── Price chart ──────────────────────────────────────────────────────────
   var pe=document.getElementById('pchart');
@@ -271,18 +269,18 @@ function buildCharts(){
     width:pe.offsetWidth, height:pe.offsetHeight,
     layout:LAYOUT, grid:GRID_OPT, crosshair:CROSS,
     rightPriceScale:{borderColor:'#161a23'},
-    timeScale:TS_OPT,
+    timeScale:TS_OPT, localization:LOC,
   });
 
   cs=pChart.addCandlestickSeries({upColor:UP,downColor:DN,borderUpColor:UP,borderDownColor:DN,wickUpColor:UP,wickDownColor:DN});
-  cs.setData(rows.map(function(r){
+  cs.setData(rows.map(function(r,i){
     var c=VSA[r.vsa_color]||VSA.Cyan;
-    return{time:rowTime(r),open:+r.open,high:+r.high,low:+r.low,close:+r.close,color:c,borderColor:c,wickColor:c};
+    return{time:i,open:+r.open,high:+r.high,low:+r.low,close:+r.close,color:c,borderColor:c,wickColor:c};
   }));
 
   smaSeries=pChart.addLineSeries({color:'#f09a3d',lineWidth:1,priceLineVisible:false,lastValueVisible:false,crosshairMarkerVisible:false,visible:showSMA});
   var sd=[];
-  for(var i=SMA_P-1;i<n;i++){var s=0;for(var j=i-SMA_P+1;j<=i;j++)s+=+rows[j].close;sd.push({time:rowTime(rows[i]),value:s/SMA_P});}
+  for(var i=SMA_P-1;i<n;i++){var s=0;for(var j=i-SMA_P+1;j<=i;j++)s+=+rows[j].close;sd.push({time:i,value:s/SMA_P});}
   smaSeries.setData(sd);
 
   bbUp=pChart.addLineSeries({color:'#5a6a8a',lineWidth:1,lineStyle:1,priceLineVisible:false,lastValueVisible:false,crosshairMarkerVisible:false,visible:showBB});
@@ -292,15 +290,15 @@ function buildCharts(){
     var s=0;for(var j=i-BB_P+1;j<=i;j++)s+=+rows[j].close;
     var m=s/BB_P,v=0;for(var j=i-BB_P+1;j<=i;j++){var d=+rows[j].close-m;v+=d*d;}
     var sd2=Math.sqrt(v/BB_P);
-    bu.push({time:rowTime(rows[i]),value:m+BB_M*sd2});bl.push({time:rowTime(rows[i]),value:m-BB_M*sd2});
+    bu.push({time:i,value:m+BB_M*sd2});bl.push({time:i,value:m-BB_M*sd2});
   }
   bbUp.setData(bu);bbLo.setData(bl);
 
   zzSeries=pChart.addLineSeries({color:GOLD,lineWidth:2,priceLineVisible:false,lastValueVisible:false,crosshairMarkerVisible:false});
-  zzSeries.setData(tps.map(function(tp){return{time:toTs(rows[tp.idx].bar_start_time),value:tp.price};}));
+  zzSeries.setData(tps.map(function(tp){return{time:tp.idx,value:tp.price};}));
 
   cs.setMarkers(tps.map(function(tp){
-    return{time:toTs(rows[tp.idx].bar_start_time),position:tp.type==='low'?'belowBar':'aboveBar',
+    return{time:tp.idx,position:tp.type==='low'?'belowBar':'aboveBar',
            color:tp.type==='low'?'#58a6ff':DN,shape:tp.type==='low'?'arrowUp':'arrowDown',
            text:(tp.type==='low'?'L ':'H ')+tp.price.toFixed(1),size:1};
   }));
@@ -316,19 +314,19 @@ function buildCharts(){
       horzLine:{visible:false,labelVisible:false},
     },
     rightPriceScale:{borderColor:'#161a23',scaleMargins:{top:0.1,bottom:0.0}},
-    timeScale:TS_OPT,
+    timeScale:TS_OPT, localization:LOC,
     handleScroll:true, handleScale:true,
   });
 
   vs=vChart.addHistogramSeries({priceScaleId:'right',priceLineVisible:false,lastValueVisible:true});
-  vs.setData(rows.map(function(r){
-    return{time:rowTime(r),value:+r.volume,color:VSA[r.vsa_color]||VSA.Cyan};
+  vs.setData(rows.map(function(r,i){
+    return{time:i,value:+r.volume,color:VSA[r.vsa_color]||VSA.Cyan};
   }));
 
   vma=vChart.addLineSeries({color:'#f09a3d',lineWidth:1,priceScaleId:'right',
                             priceLineVisible:false,lastValueVisible:false});
   var vmd=[];
-  for(var i=VOL_MA_P-1;i<n;i++){var s=0;for(var j=i-VOL_MA_P+1;j<=i;j++)s+=+rows[j].volume;vmd.push({time:rowTime(rows[i]),value:s/VOL_MA_P});}
+  for(var i=VOL_MA_P-1;i<n;i++){var s=0;for(var j=i-VOL_MA_P+1;j<=i;j++)s+=+rows[j].volume;vmd.push({time:i,value:s/VOL_MA_P});}
   vma.setData(vmd);
 
   // ── Sync time scales ──────────────────────────────────────────────────────
@@ -459,7 +457,7 @@ function stopPoll(){if(pollTimer){clearTimeout(pollTimer);pollTimer=null;}}
 function doPoll(){
   if(lastBarIndex<0) return;
   sbGet('/rest/v1/renko_bricks?instrument=eq.GC%20JUN26&brick_size=eq.4&bar_index=gt.'+lastBarIndex
-      +'&order=bar_index.asc&limit=50&select=bar_index,bar_start_time,fixed_time,open,high,low,close,volume,is_bull,delta,vsa_color')
+      +'&order=bar_index.asc&limit=50&select=bar_index,bar_start_time,open,high,low,close,volume,is_bull,delta,vsa_color')
     .then(function(nr){
       if(nr&&nr.length){
         setLive(true);
@@ -483,9 +481,9 @@ function appendNewBricks(newRows){
   newRows.forEach(function(r,offset){
     var i=n-newRows.length+offset;
     var col=VSA[r.vsa_color]||VSA.Cyan;
-    cs.update({time:rowTime(r),open:+r.open,high:+r.high,low:+r.low,close:+r.close,
+    cs.update({time:i,open:+r.open,high:+r.high,low:+r.low,close:+r.close,
                 color:col,borderColor:col,wickColor:col});
-    vs.update({time:rowTime(r),value:+r.volume,color:col});
+    vs.update({time:i,value:+r.volume,color:col});
   });
 
   // Recalculate waves and zigzag on full dataset
@@ -493,11 +491,11 @@ function appendNewBricks(newRows){
   var waves=buildWaves(rows,tps);
 
   // Update zigzag line
-  zzSeries.setData(tps.map(function(tp){return{time:toTs(rows[tp.idx].bar_start_time),value:tp.price};}));
+  zzSeries.setData(tps.map(function(tp){return{time:tp.idx,value:tp.price};}));
 
   // Update markers
   cs.setMarkers(tps.map(function(tp){
-    return{time:toTs(rows[tp.idx].bar_start_time),position:tp.type==='low'?'belowBar':'aboveBar',
+    return{time:tp.idx,position:tp.type==='low'?'belowBar':'aboveBar',
            color:tp.type==='low'?'#58a6ff':DN,
            shape:tp.type==='low'?'arrowUp':'arrowDown',
            text:(tp.type==='low'?'L ':'H ')+tp.price.toFixed(1),size:1};
@@ -505,7 +503,7 @@ function appendNewBricks(newRows){
 
   // Update SMA
   var smaData=[];
-  for(var i=SMA_P-1;i<n;i++){var s=0;for(var j=i-SMA_P+1;j<=i;j++)s+=+rows[j].close;smaData.push({time:rowTime(rows[i]),value:s/SMA_P});}
+  for(var i=SMA_P-1;i<n;i++){var s=0;for(var j=i-SMA_P+1;j<=i;j++)s+=+rows[j].close;smaData.push({time:i,value:s/SMA_P});}
   smaSeries.setData(smaData);
 
   // Update chips + stats
