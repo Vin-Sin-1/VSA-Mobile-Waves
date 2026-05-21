@@ -163,7 +163,6 @@ select:focus { outline:none; border-color:var(--accent); }
     <button class="thr-btn" id="thr-up">+</button>
     <div class="sep"></div>
     <button class="tab on"  id="btn-load">&#x21ba; Load</button>
-    <button class="tab on"  id="btn-vol">Vol</button>
   </div>
 
   <div class="stats" style="display:none">
@@ -547,12 +546,6 @@ document.getElementById('thr-dn').addEventListener('click',function(){
 });
 document.getElementById('thr-up').addEventListener('click',function(){
   if(waveThresh<15){waveThresh=Math.round((waveThresh+0.5)*10)/10;document.getElementById('tv').textContent='$'+waveThresh.toFixed(2);}
-});
-document.getElementById('btn-vol').addEventListener('click',function(){
-  showVol=!showVol;this.classList.toggle('on',showVol);
-  var vp=document.getElementById('vol-panel'),drag=document.getElementById('drag');
-  vp.style.display=showVol?'':'none';drag.style.display=showVol?'':'none';
-  onResize();
 });
 
 loadData();
