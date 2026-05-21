@@ -59,10 +59,10 @@ select:focus { outline:none; border-color:var(--accent); }
 .tab:hover:not(.on) { border-color:var(--accent); color:var(--accent); }
 .sep { width:1px; height:18px; background:var(--border); flex-shrink:0; margin:0 2px; }
 #tv  { font-size:11px; color:var(--gold); min-width:34px; flex-shrink:0; }
-input[type=range] { -webkit-appearance:none; width:80px; height:3px; border-radius:2px;
-                    background:var(--bd2); flex-shrink:0; cursor:pointer; }
-input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:14px; height:14px;
-                    border-radius:50%; background:var(--accent); cursor:pointer; }
+.thr-btn { background:var(--bg); border:1px solid var(--border); color:var(--text);
+           font-family:inherit; font-size:16px; font-weight:700; cursor:pointer;
+           width:32px; height:32px; border-radius:4px; flex-shrink:0;
+           display:flex; align-items:center; justify-content:center; line-height:1; }
 
 /* Stats */
 .stats { height:28px; min-height:28px; display:flex; align-items:center; gap:14px;
@@ -158,8 +158,9 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:14px; h
     </select>
     <div class="sep"></div>
     <span class="clbl">Min $</span>
-    <input type="range" id="thr" min="1" max="15" step="0.5" value="3">
+    <button class="thr-btn" id="thr-dn">−</button>
     <span id="tv">$3.00</span>
+    <button class="thr-btn" id="thr-up">+</button>
     <div class="sep"></div>
     <button class="tab on"  id="btn-load">&#x21ba; Load</button>
     <button class="tab on"  id="btn-sma">SMA</button>
@@ -167,7 +168,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:14px; h
     <button class="tab on"  id="btn-vol">Vol</button>
   </div>
 
-  <div class="stats">
+  <div class="stats" style="display:none">
     <span class="st">Bricks <b id="sb">–</b></span>
     <span class="st">Waves <b id="sw">–</b></span>
     <span class="st">Range <b id="sr">–</b></span>
@@ -543,8 +544,11 @@ function showToast(msg){
 
 // ── Controls ──────────────────────────────────────────────────────────────
 document.getElementById('btn-load').addEventListener('click',loadData);
-document.getElementById('thr').addEventListener('input',function(){
-  waveThresh=parseFloat(this.value);document.getElementById('tv').textContent='$'+waveThresh.toFixed(2);
+document.getElementById('thr-dn').addEventListener('click',function(){
+  if(waveThresh>1){waveThresh=Math.round((waveThresh-0.5)*10)/10;document.getElementById('tv').textContent='$'+waveThresh.toFixed(2);}
+});
+document.getElementById('thr-up').addEventListener('click',function(){
+  if(waveThresh<15){waveThresh=Math.round((waveThresh+0.5)*10)/10;document.getElementById('tv').textContent='$'+waveThresh.toFixed(2);}
 });
 document.getElementById('btn-sma').addEventListener('click',function(){
   showSMA=!showSMA;this.classList.toggle('on',showSMA);
