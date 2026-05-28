@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
+  <rect width="192" height="192" rx="28" fill="#090b0f"/>
+  <!-- Wave line -->
+  <polyline points="16,130 44,130 44,80 68,80 68,115 92,115 92,55 116,55 116,100 140,100 140,65 164,65 176,65"
+            fill="none" stroke="#3d8ef0" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
+  <!-- Bull candle -->
+  <rect x="82" y="55" width="20" height="26" rx="2" fill="#3df07a" opacity="0.85"/>
+  <!-- Bear candle -->
+  <rect x="130" y="65" width="20" height="26" rx="2" fill="#f03d3d" opacity="0.85"/>
+  <!-- Label -->
+  <text x="96" y="172" text-anchor="middle" font-family="monospace" font-size="18" font-weight="bold"
+        letter-spacing="3" fill="#3d8ef0">VSA</text>
+</svg>
