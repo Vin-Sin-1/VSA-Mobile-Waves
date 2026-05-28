@@ -141,7 +141,7 @@ select:focus { outline:none; border-color:var(--accent); }
 
   <div class="header">
     <div class="hlogo">VSA</div>
-    <div class="htitle">GC JUN26 &nbsp;&#183;&nbsp; Renko 4-pip &nbsp;&#183;&nbsp; Waves</div>
+    <div class="htitle">GC AUG26 &nbsp;&#183;&nbsp; Renko 4-pip &nbsp;&#183;&nbsp; Waves</div>
     <div class="sdot" id="ldot"></div>
     <a class="hback" href="/vsa-mobile-dashboard/">&#8592; Chart</a>
   </div>
@@ -232,7 +232,7 @@ function getRange(s){
 function loadData(){
   stopPoll(); showOverlay('LOADING...');
   var r=getRange(document.getElementById('sel').value);
-  var q='instrument=eq.GC%20JUN26&brick_size=eq.4&order=bar_index.asc&limit='+r.lim
+  var q='instrument=eq.GC%20AUG26&brick_size=eq.4&order=bar_index.asc&limit='+r.lim
       +'&select=bar_index,bar_start_time,open,high,low,close,volume,is_bull,delta,vsa_color'
       +'&bar_start_time=gte.'+encodeURIComponent(r.gte);
   if(r.lte) q+='&bar_start_time=lte.'+encodeURIComponent(r.lte);
@@ -456,7 +456,7 @@ function startPoll(){pollTimer=setTimeout(doPoll,500);}
 function stopPoll(){if(pollTimer){clearTimeout(pollTimer);pollTimer=null;}}
 function doPoll(){
   if(lastBarIndex<0) return;
-  sbGet('/rest/v1/renko_bricks?instrument=eq.GC%20JUN26&brick_size=eq.4&bar_index=gt.'+lastBarIndex
+  sbGet('/rest/v1/renko_bricks?instrument=eq.GC%20AUG26&brick_size=eq.4&bar_index=gt.'+lastBarIndex
       +'&order=bar_index.asc&limit=50&select=bar_index,bar_start_time,open,high,low,close,volume,is_bull,delta,vsa_color')
     .then(function(nr){
       if(nr&&nr.length){

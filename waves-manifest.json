@@ -1,7 +1,7 @@
 {
   "name": "VSA Waves",
   "short_name": "Waves",
-  "description": "VSA Wave Detector - GC JUN26",
+  "description": "VSA Wave Detector - GC AUG26",
   "start_url": "/VSA-Mobile-Waves/waves.html",
   "display": "standalone",
   "background_color": "#090b0f",

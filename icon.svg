@@ -9,5 +9,5 @@
   <rect x="130" y="65" width="20" height="26" rx="2" fill="#f03d3d" opacity="0.85"/>
   <!-- Label -->
   <text x="96" y="172" text-anchor="middle" font-family="monospace" font-size="18" font-weight="bold"
-        letter-spacing="3" fill="#3d8ef0">VSA</text>
+        letter-spacing="3" fill="#3d8ef0">WAVES</text>
 </svg>
